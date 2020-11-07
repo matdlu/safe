@@ -48,7 +48,7 @@ static const char* CMD_STR_HELP[CMD_ENUM_LENGTH] = {
         "ef, encrypt_file <input path> <output path> <password> - loads a file on <input path> then encrypts it using <passsword> then saves it to <output path>.",
         "d, decrypt <path> <password> - loads a file on <path> then decrypts it using <password> then outputs content to stdout.",
         "dtf, decrypt_to_file <input path> <output path> <password> - loads a file on <input path> then decrypts it using <password> then saves it to <output path>.",
-        "p, prompt - launches the interactive prompt.",
+        "p, prompt - launches the interactive prompt. If you're in the prompt already, this command does nothing.",
         "h, help <command> - displays description of all possible commands or of a single command if <command> parameter is specified.",
 };
 

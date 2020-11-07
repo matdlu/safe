@@ -28,7 +28,6 @@ static int cmdDecrypt(const char* path, const char* pw) {
         if (CMD_PROMPT_ON && out.m[out.m_l - 1] != '\n') putchar('\n');
     }
 
-    //printf("%d %d %d\n", out.r, out.enc_metadata, out.m_l);
     encDecryptFileOutClear(&out);
 
     return out.r;
@@ -53,17 +52,19 @@ static int cmdDecryptToFile(const char* in_path, const char* out_path, const cha
 
 static int cmdRun(int cmd, char** arg);
 void cmdPrompt() { // todo: static
-    CMD_PROMPT_ON = 1;
-    MsdStrSplitOut out;
-    out.sa = 0;
-    do {
-        printf("%s", CMD_PROMPT_STR);
-        free(out.sa);
-        out = msdStrSplit(msdIoGetStr());
-        //todo: make quotations " " group input
-        //for(int i = 0; i < out.sa_l; i++) msd_str_printchars(out.sa[i]);
-    } while (cmdRun(cmdParse(out.sa[0]), out.sa + 1) );
-    CMD_PROMPT_ON = 0;
+    if ( CMD_PROMPT_ON != 1 ) { // to make nesting prompts impossible
+        CMD_PROMPT_ON = 1;
+        MsdStrSplitOut out;
+        out.sa = 0;
+        do {
+            printf("%s", CMD_PROMPT_STR);
+            free(out.sa);
+            out = msdStrSplit(msdIoGetStr());
+            //todo: make quotations " " group input
+            //for(int i = 0; i < out.sa_l; i++) msd_str_printchars(out.sa[i]);
+        } while (cmdRun(cmdParse(out.sa[0]), out.sa + 1) );
+        CMD_PROMPT_ON = 0;
+    }
 }
 
 static void cmdHelp(const char* arg_cmd) {

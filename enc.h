@@ -32,8 +32,8 @@ void encDecryptFileOutClear(EncDecryptFileOut* out);
 void encDecryptFileOutClear(EncDecryptFileOut* out) {
     // not clearing the return value intentionally
     out->enc_metadata = 0;
-    ENC_ZERO_AND_FREE(out->m_with_header);
     out->m_l = 0;
+    ENC_ZERO_AND_FREE(out->m_with_header);
 }
 #endif // ENC_IMPLEMENTATION
 
