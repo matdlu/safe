@@ -43,7 +43,7 @@ static const char* CMD_STR_SHORT[CMD_ENUM_LENGTH] = {
 
 static const char* CMD_STR_HELP[CMD_ENUM_LENGTH] = {
         "<nothing> - when no command is specified the gui is launched.",
-        "q, exit - quit's program.",
+        "q, exit - exits the program.",
         "em, encrypt_message <path> <message> <password> - encrypts a <message> using <password> then saves it to <path>.",
         "ef, encrypt_file <input path> <output path> <password> - loads a file on <input path> then encrypts it using <passsword> then saves it to <output path>.",
         "d, decrypt <path> <password> - loads a file on <path> then decrypts it using <password> then outputs content to stdout.",
