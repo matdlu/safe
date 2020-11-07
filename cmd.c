@@ -23,8 +23,10 @@ static int cmdDecrypt(const char* path, const char* pw) {
     encInit();
     EncDecryptFileOut out = encDecryptFile(path, pw);
 
-    fwrite(out.m, out.m_l, 1, stdout);
-    if(CMD_PROMPT_ON && out.m[out.m_l - 1] != '\n' ) putchar('\n');
+    if( out.r > 0 ) {
+        fwrite(out.m, out.m_l, 1, stdout);
+        if (CMD_PROMPT_ON && out.m[out.m_l - 1] != '\n') putchar('\n');
+    }
 
     //printf("%d %d %d\n", out.r, out.enc_metadata, out.m_l);
     encDecryptFileOutClear(&out);
@@ -36,11 +38,13 @@ static int cmdDecryptToFile(const char* in_path, const char* out_path, const cha
     encInit();
     EncDecryptFileOut out = encDecryptFile(in_path, pw);
 
-    FILE *f_out = fopen(out_path, "wb");
+    if ( out.r > 0 ) {
+        FILE *f_out = fopen(out_path, "wb");
 
-    fwrite(out.m, out.m_l, 1, f_out);
+        fwrite(out.m, out.m_l, 1, f_out);
 
-    fclose(f_out);
+        fclose(f_out);
+    }
 
     encDecryptFileOutClear(&out);
 
