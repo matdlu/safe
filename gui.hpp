@@ -8,9 +8,9 @@
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/Fl_Text_Editor.H>
-#include <Fl/Fl_Native_File_Chooser.H>
-#include <Fl/Fl_Secret_Input.H>
-#include <Fl/Fl_Output.H>
+#include <FL/Fl_Native_File_Chooser.H>
+#include <FL/Fl_Secret_Input.H>
+#include <FL/Fl_Output.H>
 #include <iostream>
 #define MSD_STR_IMPLEMENTATION // propably have to define it again since it's C++ here and in main.c it's just C
 #include "msd_str.h"

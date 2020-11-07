@@ -129,6 +129,7 @@ int msdStrCntSpaces(char* str) {
 
 MsdStrSplitOut msdStrSplit(char* str) {
     MsdStrSplitOut out;
+    out.sa_l = 0;
 
     uintll str_l = 0;
     uintll not_space = 0;

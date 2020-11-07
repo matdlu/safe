@@ -19,8 +19,6 @@ static int cmdEncryptFile(const char* in_path, const char* out_path, const char*
     return encEncryptFile(in_path, out_path, pw);
 }
 
-/* todo: decrypt function crashes the program */
-
 static int cmdDecrypt(const char* path, const char* pw) {
     encInit();
     EncDecryptFileOut out = encDecryptFile(path, pw);
@@ -28,7 +26,7 @@ static int cmdDecrypt(const char* path, const char* pw) {
     fwrite(out.m, out.m_l, 1, stdout);
     if(CMD_PROMPT_ON && out.m[out.m_l - 1] != '\n' ) putchar('\n');
 
-    printf("%d %d %d\n", out.r, out.enc_metadata, out.m_l);
+    //printf("%d %d %d\n", out.r, out.enc_metadata, out.m_l);
     encDecryptFileOutClear(&out);
 
     return out.r;

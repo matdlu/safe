@@ -20,8 +20,8 @@ typedef struct {
     uchar enc_metadata;
     uintll m_l;
     uchar* m;
+    uchar* m_with_header;
 } EncDecryptFileOut;
-
 void encDecryptFileOutClear(EncDecryptFileOut* out);
 
 #ifdef ENC_IMPLEMENTATION
@@ -32,7 +32,7 @@ void encDecryptFileOutClear(EncDecryptFileOut* out);
 void encDecryptFileOutClear(EncDecryptFileOut* out) {
     // not clearing the return value intentionally
     out->enc_metadata = 0;
-    ENC_ZERO_AND_FREE(out->m);
+    ENC_ZERO_AND_FREE(out->m_with_header);
     out->m_l = 0;
 }
 #endif // ENC_IMPLEMENTATION

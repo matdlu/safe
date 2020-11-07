@@ -91,17 +91,12 @@ static uchar* encDecrypt(uchar* m_enc, const uintll m_enc_l, const uchar* nonce,
 
 /* file IO */
 
-typedef struct {
-    uchar enc_metadata;
-    uintll m_l;
-} EncEncryptedHeader;
+/* encrypted header
+ * uchar enc_metadata
+ * uintll m_l
+ * */
 
-static void encEncryptedHeaderClear(EncEncryptedHeader* eh) {
-    eh->enc_metadata = 0;
-    eh->m_l = 0;
-}
-
-typedef struct {
+typedef struct { // todo: the first information could be the length of the header, in case the header would change, it would be possible to add backwards compatibility
     uintll salt_l;
     uchar salt[ENC_SALT_L];
     uintll nonce_l;
@@ -120,19 +115,13 @@ static void encNotEncryptedHeaderClear(EncNotEncryptedHeader* neh) {
 /* encrypts uchar array then saves it to file on path
  * returns 0 if writing failed */
 static int encEncryptToFile(const char* path, const uchar* m, const uintll m_l, const char* pw, const uchar enc_metadata) {
-    EncEncryptedHeader eh;
-    eh.enc_metadata = enc_metadata;
-    eh.m_l = m_l;
-
-    uintll m_with_header_l = m_l + sizeof eh;
+    uintll m_with_header_l = m_l + sizeof enc_metadata + sizeof m_l;
     uchar* m_with_header = ENC_ALLOC(m_with_header_l);
 
-    /* copy eh to m_with_header */
-    *m_with_header = eh.enc_metadata;
-    memcpy(m_with_header + 1, &m_l, sizeof m_l);
-    memcpy(m_with_header + 1 + sizeof m_l, m, m_l); //for(int i = 0; i < m_l; i++) m_with_header[i + sizeof eh] = m[i];
-
-    encEncryptedHeaderClear(&eh);
+    /* copy EncEncryptedHeader data to m_with_header */
+    *m_with_header = enc_metadata;
+    memcpy(m_with_header + sizeof enc_metadata, &m_l, sizeof m_l);
+    memcpy(m_with_header + sizeof enc_metadata + sizeof m_l, m, m_l); //for(int i = 0; i < m_l; i++) m_with_header[i + sizeof eh] = m[i];
 
     EncEncryptOut encrypt_out = encEncrypt(m_with_header, m_with_header_l, pw);
 
@@ -160,11 +149,11 @@ static int encEncryptToFile(const char* path, const uchar* m, const uintll m_l, 
     encNotEncryptedHeaderClear(&neh);
 
     // todo: do something to overwrite the internal fwrite buffer, or use an unbuffered function
+    return 1;
 }
 
 EncDecryptFileOut encDecryptFile(const char* path, const char* pw) { // loads a file from disk into heap buffer
     EncDecryptFileOut out;
-
     EncNotEncryptedHeader neh;
 
     FILE *f = fopen(path, "rb");
@@ -183,15 +172,11 @@ EncDecryptFileOut encDecryptFile(const char* path, const char* pw) { // loads a 
     encNotEncryptedHeaderClear(&neh);
 
     if ( out.r > 0 ) {
-        EncEncryptedHeader eh;
-        eh.enc_metadata = *m_with_header;
-        memcpy(&eh.m_l, m_with_header + 1, sizeof eh.m_l);
+        out.enc_metadata = *m_with_header;
+        memcpy(&out.m_l, m_with_header + sizeof out.enc_metadata, sizeof out.m_l);
 
-        out.enc_metadata = eh.enc_metadata;
-        out.m_l = eh.m_l;
-        out.m = m_with_header + 1 + sizeof eh.m_l;
-
-        encEncryptedHeaderClear(&eh);
+        out.m = m_with_header + 1 + sizeof out.m_l;
+        out.m_with_header = m_with_header;
     }
 
     return out;
