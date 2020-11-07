@@ -3,9 +3,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "msd_str.h"
-#include "msd_io.h"
 #include "enc.h"
+#include "msd_io.h"
+#include "msd_str.h"
 
 enum CMD {
     CMD_NO_CMD,
@@ -60,7 +60,5 @@ static const char* CMD_PROMPT_STR = ">";
 static char CMD_PROMPT_ON = 0;
 
 int cmdLine(int argc, char **argv);
-
-void cmdPrompt(); //tmp
 
 #endif //CHEST_CLI_H

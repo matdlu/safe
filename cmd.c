@@ -51,7 +51,7 @@ static int cmdDecryptToFile(const char* in_path, const char* out_path, const cha
 }
 
 static int cmdRun(int cmd, char** arg);
-void cmdPrompt() { // todo: static
+static void cmdPrompt() {
     if ( CMD_PROMPT_ON != 1 ) { // to make nesting prompts impossible
         CMD_PROMPT_ON = 1;
         MsdStrSplitOut out;
@@ -62,7 +62,7 @@ void cmdPrompt() { // todo: static
             out = msdStrSplit(msdIoGetStr());
             //todo: make quotations " " group input
             //for(int i = 0; i < out.sa_l; i++) msd_str_printchars(out.sa[i]);
-        } while (cmdRun(cmdParse(out.sa[0]), out.sa + 1) );
+        } while ( cmdRun(cmdParse(out.sa[0]), out.sa + 1) == 0 );
         CMD_PROMPT_ON = 0;
     }
 }
@@ -77,11 +77,11 @@ static void cmdHelp(const char* arg_cmd) {
     }
 }
 
-/* returns 1 if everything is successful, 0 if there is a need to exit the program */
+/* returns 0 if everything is successful, 1 if there is a need to exit the program */
 static int cmdRun(int cmd, char** arg) {
     switch (cmd) {
         case CMD_EXIT:
-            return 0;
+            return 1;
         case CMD_ENCRYPT_MESSAGE:
             cmdEncryptMessage(arg[0], arg[1], arg[2]);
             break;
@@ -101,7 +101,7 @@ static int cmdRun(int cmd, char** arg) {
             cmdHelp(arg[0]);
             break;
     }
-    return 1;
+    return 0;
 }
 
 #define CMD_ARGC 1
