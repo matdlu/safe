@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "enc.h"
-#include "msd_io.h"
-#include "msd_str.h"
+#include "mdl_io.h"
+#include "mdl_str.h"
 
 enum CMD {
     CMD_NO_CMD,
@@ -56,7 +56,7 @@ static const char* CMD_HELP_SHELL_HISTORY_WARNING = "WARNING!\nSome shells (e.g.
 
 // todo: error messages, handle encInit errors, read/write errors, out of memory errors
 
-static const char* CMD_PROMPT_STR = ">";
+static const char* CMD_PROMPT_STR = "> ";
 static char CMD_PROMPT_ON = 0;
 
 int cmdLine(int argc, char **argv);

@@ -1,20 +1,21 @@
+/*
+ * commandline input and output
+ */
 #ifndef MSD_IO_H
 #define MSD_IO_H
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #define MSD_IO_LINE_MAX 1024
 
-char* msdIoGetLine();
-char* msdIoGetStr();
+char* mdlIoGetLine();
+char* mdlIoGetStr();
 
-#endif //MSD_IO_H
-
-#ifdef MSD_IO_IMPLEMENTATION
+#endif //MDL_IO_H
+#ifdef MSD_IO_IMPL
 
 /* returns 0 if the line is longer than MSD_IO_LINE_MAX */
-char* msdIoGetLine() {
+char* mdlIoGetLine() {
     char* line = malloc(MSD_IO_LINE_MAX);
 
     int line_l = 0;
@@ -24,7 +25,7 @@ char* msdIoGetLine() {
 }
 
 /* same as msdIoGetLine but removes the newline at the end */
-char* msdIoGetStr() {
+char* mdlIoGetStr() {
     char* line = malloc(MSD_IO_LINE_MAX);
 
     int line_l = 0;
@@ -34,4 +35,4 @@ char* msdIoGetStr() {
     return line_l < MSD_IO_LINE_MAX ? line : 0;
 }
 
-#endif // MSD_IO_IMPLEMENTATION
+#endif // MSD_IO_IMPL

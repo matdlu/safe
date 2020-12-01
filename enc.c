@@ -9,7 +9,7 @@ int encInit() {
     return sodium_init();
 }
 
-static uintll encStrLen(const char* str) {
+static ul encStrLen(const char* str) {
     if ( str ) {
         size_t str_l = 0;
         while (str[str_l]) str_l++;
@@ -21,7 +21,7 @@ static uintll encStrLen(const char* str) {
 
 /* encryption */
 
-static void encPbkdf(const char* pw, const uchar* salt, uchar* key) {
+static void encPbkdf(const char* pw, const uc* salt, uc* key) {
     size_t pw_l = encStrLen(pw);
 
     if (crypto_pwhash
@@ -33,11 +33,11 @@ static void encPbkdf(const char* pw, const uchar* salt, uchar* key) {
 }
 
 typedef struct {
-    uchar salt[ENC_SALT_L];
-    uchar nonce[ENC_NONCE_L];
-    uintll m_l;
-    uintll m_enc_l;
-    uchar* m_enc;
+    uc salt[ENC_SALT_L];
+    uc nonce[ENC_NONCE_L];
+    ul m_l;
+    ul m_enc_l;
+    uc* m_enc;
 } EncEncryptOut;
 
 static void encEncryptOutClear(EncEncryptOut* out) {
@@ -48,18 +48,18 @@ static void encEncryptOutClear(EncEncryptOut* out) {
     ENC_ZERO_AND_FREE(out->m_enc)
 }
 
-static EncEncryptOut encEncrypt(uchar* m, const uintll m_l, const char* pw) {
+static EncEncryptOut encEncrypt(uc* m, const ul m_l, const char* pw) {
     size_t m_enc_l = m_l + crypto_secretbox_MACBYTES; // + space for authentication header
-    uchar* m_enc = ENC_ALLOC(m_enc_l);
+    uc* m_enc = ENC_ALLOC(m_enc_l);
 
     /* generate nonce */
-    uchar nonce[ENC_NONCE_L];
+    uc nonce[ENC_NONCE_L];
     randombytes_buf(&nonce, ENC_NONCE_L);
 
     /* derive key from password */
-    uchar salt[ENC_SALT_L];
+    uc salt[ENC_SALT_L];
     randombytes_buf(salt, ENC_SALT_L);
-    uchar key[ENC_KEY_L];
+    uc key[ENC_KEY_L];
     encPbkdf(pw, salt, key);
 
     /* actual encryption */
@@ -76,10 +76,10 @@ static EncEncryptOut encEncrypt(uchar* m, const uintll m_l, const char* pw) {
     return out;
 }
 
-static uchar* encDecrypt(uchar* m_enc, const uintll m_enc_l, const uchar* nonce, const uchar* salt, const char* pw) {
-    uchar *m_dec = ENC_ALLOC(m_enc_l - crypto_secretbox_MACBYTES); // todo: check if this screwed up something
+static uc* encDecrypt(uc* m_enc, const ul m_enc_l, const uc* nonce, const uc* salt, const char* pw) {
+    uc *m_dec = ENC_ALLOC(m_enc_l - crypto_secretbox_MACBYTES); // todo: check if this screwed up something
 
-    uchar key[ENC_KEY_L];
+    uc key[ENC_KEY_L];
     encPbkdf(pw, salt, key);
 
     if ( crypto_secretbox_open_easy(m_dec, m_enc, m_enc_l, nonce, key) >= 0 ) {
@@ -92,16 +92,16 @@ static uchar* encDecrypt(uchar* m_enc, const uintll m_enc_l, const uchar* nonce,
 /* file IO */
 
 /* encrypted header
- * uchar enc_metadata
- * uintll m_l
+ * uc enc_metadata
+ * ul m_l
  * */
 
 typedef struct { // todo: the first information could be the length of the header, in case the header would change, it would be possible to add backwards compatibility
-    uintll salt_l;
-    uchar salt[ENC_SALT_L];
-    uintll nonce_l;
-    uchar nonce[ENC_NONCE_L];
-    uintll m_enc_l;
+    ul salt_l;
+    uc salt[ENC_SALT_L];
+    ul nonce_l;
+    uc nonce[ENC_NONCE_L];
+    ul m_enc_l;
 } EncNotEncryptedHeader;
 
 static void encNotEncryptedHeaderClear(EncNotEncryptedHeader* neh) {
@@ -112,11 +112,11 @@ static void encNotEncryptedHeaderClear(EncNotEncryptedHeader* neh) {
     neh->m_enc_l = 0;
 }
 
-/* encrypts uchar array then saves it to file on path
+/* encrypts uc array then saves it to file on path
  * returns 0 if writing failed */
-static int encEncryptToFile(const char* path, const uchar* m, const uintll m_l, const char* pw, const uchar enc_metadata) {
-    uintll m_with_header_l = m_l + sizeof enc_metadata + sizeof m_l;
-    uchar* m_with_header = ENC_ALLOC(m_with_header_l);
+static int encEncryptToFile(const char* path, const uc* m, const ul m_l, const char* pw, const uc enc_metadata) {
+    ul m_with_header_l = m_l + sizeof enc_metadata + sizeof m_l;
+    uc* m_with_header = ENC_ALLOC(m_with_header_l);
 
     /* copy EncEncryptedHeader data to m_with_header */
     *m_with_header = enc_metadata;
@@ -162,11 +162,11 @@ EncDecryptFileOut encDecryptFile(const char* path, const char* pw) { // loads a 
     if ( ! fread(&neh.nonce_l, 8, 1, f) ) { out.r = 0; return out; }
     if ( ! fread(neh.nonce, neh.nonce_l, 1, f) ) { out.r = 0; return out; }
     if ( ! fread(&neh.m_enc_l, 8, 1, f) ) { out.r = 0; return out; }
-    uchar* m_enc = ENC_ALLOC(neh.m_enc_l);
+    uc* m_enc = ENC_ALLOC(neh.m_enc_l);
     if ( ! fread(m_enc, neh.m_enc_l, 1, f) ) { out.r = 0; return out; }
     fclose(f);
 
-    uchar* m_with_header = encDecrypt(m_enc, neh.m_enc_l, neh.nonce, neh.salt, pw);
+    uc* m_with_header = encDecrypt(m_enc, neh.m_enc_l, neh.nonce, neh.salt, pw);
     out.r = m_with_header ? 1 : -1;
 
     encNotEncryptedHeaderClear(&neh);
@@ -196,7 +196,7 @@ int encEncryptFile(const char* in_path, const char* out_path, const char* pw) {
     int f_l = ftell(f_in); // todo: error handling if -1
     fseek(f_in, 0l, SEEK_SET);
 
-    uchar* buf = ENC_ALLOC(f_l);
+    uc* buf = ENC_ALLOC(f_l);
     fread(buf, f_l, 1, f_in);
 
     int r = encEncryptToFile(out_path, buf, f_l, pw, ENC_METADATA_FILE);

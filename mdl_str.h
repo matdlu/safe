@@ -1,3 +1,6 @@
+/*
+ * char and string utilities
+ */
 #ifndef MDL_STR_H
 #define MDL_STR_H
 
@@ -5,7 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include "msd_type.h"
+
+typedef unsigned char      uc;
+typedef unsigned short int us;
+typedef unsigned int       ui;
+typedef unsigned long int  ul;
 
 int mdlChIsSpace(const char c);
 int mdlChIs(const char c, const char* chars);
@@ -13,14 +20,14 @@ int mdlStrIsBlank(const char* str);
 int mdlStrFindFirst(const char* str, const char* chars);
 char* mdlStrCat(char* s1, const char* s2);
 char* mdlStrCatNew(const char* s1, const char* s2);
-lu mdlStrLen(const char* str);
+ul mdlStrLen(const char* str);
 void mdlStrDebugPrintChars(const char* str);
 int mdlStrCmp(const char* s1, const char* s2);
 int mdlStrCntSpaces(char* str);
 
 extern const char* MDL_STR_CHARS_WHITE;
 
-typedef struct { char** a; lu l; } StrArr;
+typedef struct { char** a; ul l; } StrArr;
 StrArr mdlStrSplit(char* str);
 StrArr mdlStrSplitQuotes(char* str);
 #endif //MDL_STR_H
@@ -36,7 +43,7 @@ int mdlChIsSpace(const char c) {
 }
 
 int mdlChIs(const char c, const char* chars) {
-    lu chars_l;
+    ul chars_l;
     for(chars_l = 0; chars[chars_l]; chars_l++)
         if (c == chars[chars_l] ) return 1;
     return 0;
@@ -55,7 +62,7 @@ int mdlStrIsBlank(const char* str) {
 
 int mdlStrFindFirst(const char* str, const char* chars) {
     if ( str ) {
-        lu str_l, chars_l;
+        ul str_l, chars_l;
         for(str_l = 0; str[str_l]; str_l++)
             for(chars_l = 0; chars[chars_l]; chars_l++)
                 if (str[str_l] == chars[chars_l]) return str_l;
@@ -64,9 +71,9 @@ int mdlStrFindFirst(const char* str, const char* chars) {
 }
 
 
-lu mdlStrLen(const char* str) {
+ul mdlStrLen(const char* str) {
     if ( str ) {
-        lu str_l = 0;
+        ul str_l = 0;
         while (str[str_l]) str_l++;
         return str_l--;
     } else {
@@ -88,8 +95,8 @@ char* mdlStrCat(char* s1, const char* s2) {
 
 char* mdlStrCatNew(const char* s1, const char* s2) {
     if ( s1 && s2 ) {
-        lu s1_l = mdlStrLen(s1);
-        lu s2_l = mdlStrLen(s2);
+        ul s1_l = mdlStrLen(s1);
+        ul s2_l = mdlStrLen(s2);
 
         char* str = (char*) malloc(s1_l + s2_l + 1); // +1 for \0 in the end
 
@@ -107,7 +114,7 @@ char* mdlStrCatNew(const char* s1, const char* s2) {
 }
 
 void mdlStrDebugPrintChars(const char* str) {
-    lu str_l = mdlStrLen(str);
+    ul str_l = mdlStrLen(str);
     int i;
     for(i = 0; i < str_l + 1; i++) {  // +1 to include '\0'
         printf("'%c' ", str[i]);
@@ -119,8 +126,8 @@ int mdlStrCmp(const char* s1, const char* s2) {
     if ( s1 && s2 ) {
         int r = 0;
 
-        lu s1_l = 0;
-        lu s2_l = 0;
+        ul s1_l = 0;
+        ul s2_l = 0;
 
         while( *(s1 + s1_l) && *(s2 + s2_l) ) {
             r = *(s1 + s1_l++) == *(s2 + s2_l++);
@@ -156,8 +163,8 @@ StrArr mdlStrSplit(char* str) {
     out.a = 0;
     out.l = 0;
 
-    lu str_l = 0;
-    lu not_space = 0;
+    ul str_l = 0;
+    ul not_space = 0;
     while( str[str_l] ) {
         if (mdlChIsSpace(str[str_l + 1]) || str[str_l + 1] == 0 ) {
             if ( not_space ) out.l++;
@@ -241,4 +248,4 @@ StrArr mdlStrSplitQuotes(char* str) {
 
     return out;
 }
-#endif // MDL_STR_IMPLEMENTATION
+#endif // MDL_STR_IMPL

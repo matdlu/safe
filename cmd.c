@@ -3,7 +3,7 @@
 static int cmdParse(const char* str) {
     int i;
     for (i = 0; i < CMD_ENUM_LENGTH; i++) {
-        if (msdStrCmp(str, CMD_STR[i]) || msdStrCmp(str, CMD_STR_SHORT[i]) ) {
+        if (mdlStrCmp(str, CMD_STR[i]) || mdlStrCmp(str, CMD_STR_SHORT[i]) ) {
             return i;
         }
     }
@@ -54,15 +54,19 @@ static int cmdRun(int cmd, char** arg);
 static void cmdPrompt() {
     if ( CMD_PROMPT_ON != 1 ) { // to make nesting prompts impossible
         CMD_PROMPT_ON = 1;
-        MsdStrSplitOut out;
-        out.sa = 0;
+        StrArr sa;
+        sa.a = 0;
         do {
             printf("%s", CMD_PROMPT_STR);
-            free(out.sa);
-            out = msdStrSplit(msdIoGetStr());
+            free(sa.a);
+            sa = mdlStrSplit(mdlIoGetStr());
             //todo: make quotations " " group input
+            //int i = 0;
+            //for(i = 0; i < sa.l; i++)  {
+            //    printf("\"%s\"\n", sa.a[i]);
+            //}
             //for(int i = 0; i < out.sa_l; i++) msd_str_printchars(out.sa[i]);
-        } while ( cmdRun(cmdParse(out.sa[0]), out.sa + 1) == 0 );
+        } while ( cmdRun(cmdParse(sa.a[0]), sa.a + 1) == 0 );
         CMD_PROMPT_ON = 0;
     }
 }
