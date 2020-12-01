@@ -2,13 +2,13 @@
 #include "logo.xpm"
 
 static const char* MAIN_WINDOW_LABEL = "Safe Crypto Tool";
-static const uint MAIN_OFF = 20;
+static const ui MAIN_OFF = 20;
 
-static const uint MAIN_BTN_WIDTH = 180 - 2 * MAIN_OFF;
-static const uint MAIN_BTN_HEIGHT = 120 - 2 * MAIN_OFF;
+static const ui MAIN_BTN_WIDTH = 180 - 2 * MAIN_OFF;
+static const ui MAIN_BTN_HEIGHT = 120 - 2 * MAIN_OFF;
 
-static const uint MAIN_WINDOW_WIDTH = 2 * MAIN_BTN_WIDTH + 3 * MAIN_OFF;
-static const uint MAIN_WINDOW_HEIGHT = 2 * MAIN_BTN_HEIGHT + 3 * MAIN_OFF;
+static const ui MAIN_WINDOW_WIDTH = 2 * MAIN_BTN_WIDTH + 3 * MAIN_OFF;
+static const ui MAIN_WINDOW_HEIGHT = 2 * MAIN_BTN_HEIGHT + 3 * MAIN_OFF;
 
 static const char* DECRYPT_BTN_LABEL = "Decrypt";
 static const char* ENCMESG_BTN_LABEL = "Encrypt message";
@@ -61,14 +61,14 @@ void decrypt_btn_f(Fl_Widget*, void*) {
 
 static const char* ENCMESG_WINDOW_LABEL = "Safe Crypto Tool - Encrypt message";
 
-static const uint ENCMESG_EDITOR_WIDTH = 320;
-static const uint ENCMESG_EDITOR_HEIGHT = 280;
+static const int ENCMESG_EDITOR_WIDTH = 320;
+static const ui ENCMESG_EDITOR_HEIGHT = 280;
 
-static const uint ENCMESG_BTN_WIDTH = ENCMESG_EDITOR_WIDTH * 0.5;
-static const uint ENCMESG_BTN_HEIGHT = 30;
+static const ui ENCMESG_BTN_WIDTH = ENCMESG_EDITOR_WIDTH * 0.5;
+static const ui ENCMESG_BTN_HEIGHT = 30;
 
-static const uint ENCMESG_WINDOW_WIDTH = ENCMESG_EDITOR_WIDTH;
-static const uint ENCFILE_WINDOW_HEIGHT = ENCMESG_EDITOR_HEIGHT + ENCMESG_BTN_HEIGHT;
+static const ui ENCMESG_WINDOW_WIDTH = ENCMESG_EDITOR_WIDTH;
+static const ui ENCFILE_WINDOW_HEIGHT = ENCMESG_EDITOR_HEIGHT + ENCMESG_BTN_HEIGHT;
 
 void btn_paste_f(Fl_Widget*, void* vp_editor);
 
@@ -110,13 +110,13 @@ void btn_paste_f(Fl_Widget*, void* vp_editor) {
     Fl::paste(*(Fl_Text_Editor*) vp_editor, 1, Fl::clipboard_plain_text);
 }
 
-static const uint PASSWORD_OFF = 20;
+static const ui PASSWORD_OFF = 20;
 
-static const uint PASSWORD_INPUT_WIDTH = 160;
-static const uint PASSWORD_INPUT_HEIGHT = 30;
+static const ui PASSWORD_INPUT_WIDTH = 200;
+static const ui PASSWORD_INPUT_HEIGHT = 30;
 
-static const uint PASSWORD_WINDOW_WIDTH = PASSWORD_INPUT_WIDTH + 2*PASSWORD_OFF;
-static const uint PASSWORD_WINDOW_HEIGHT = 7.5*PASSWORD_OFF + 4*PASSWORD_INPUT_HEIGHT;
+static const ui PASSWORD_WINDOW_WIDTH = PASSWORD_INPUT_WIDTH + 2*PASSWORD_OFF;
+static const ui PASSWORD_WINDOW_HEIGHT = 7.5*PASSWORD_OFF + 4*PASSWORD_INPUT_HEIGHT;
 
 static const char* PASSWORD_BTN_SAVE_LABEL = "Save";
 static const char* PASSWORD_FEEDBACK_NO_MATCH_LABEL = "Passwords do not match. ✗";
@@ -135,8 +135,20 @@ struct Password_Input_arg {
     Fl_Button *btn_save;
 };
 
+struct Btn_Save_arg_Secret_Input {
+    Btn_Save_arg* btn_save_arg;
+    Fl_Secret_Input* in1;
+};
+
+static const char* ERROR_EMPTY_MESSAGE = "Cannot encrypt an empty message!";
+
 void btn_encrypt_f(Fl_Widget*, void* vp_arg) {
-    // todo: password prompt with two input fields to make sure that the password is right
+    Btn_Save_arg* btn_save_arg = (Btn_Save_arg*)vp_arg;
+    if ( btn_save_arg->buf->length() == 0 ) {
+        fl_message("%s", ERROR_EMPTY_MESSAGE);
+        return;
+    }
+
     Fl_Window *password_window = new Fl_Window(PASSWORD_WINDOW_WIDTH,PASSWORD_WINDOW_HEIGHT);
     password_window->label("Safe Crypto Tool - Encrypt message");
     password_window->resizable(password_window);
@@ -171,9 +183,13 @@ void btn_encrypt_f(Fl_Widget*, void* vp_arg) {
     password_feedback->box(FL_NO_BOX);
     password_feedback->set_output();
 
+    Btn_Save_arg_Secret_Input* arg = new Btn_Save_arg_Secret_Input;
+    arg->btn_save_arg = btn_save_arg;
+    arg->in1 = in1;
+
     btn_save->label(PASSWORD_BTN_SAVE_LABEL);
     btn_save->shortcut(FL_CTRL + 's');
-    btn_save->callback(btn_save_f, vp_arg);
+    btn_save->callback(btn_save_f, arg);
     btn_save->deactivate();
 
     password_window->show();
@@ -211,35 +227,43 @@ int check_password(const char* pw1, const char* pw2) {
     int ret = strcmp(pw1, pw2);
     if ( ret ) {
         return 0;
-    } else if (msdStrIsBlank(pw2) ) {
+    } else if ( mdlStrIsBlank(pw2) ) {
         return 1;
     } else {
         return 2;
     }
 }
 
-static const char* EXT = ".txt";
+static const char* EXT = ".enc";
+static const char* WRITE_ERROR = "Write error. Check directory permissions and available space.";
 
 void btn_save_f(Fl_Widget* w, void* vp_arg) {
-    Btn_Save_arg *arg = (Btn_Save_arg*) vp_arg;
+    Btn_Save_arg_Secret_Input* both = (Btn_Save_arg_Secret_Input*) vp_arg;
+    Btn_Save_arg* arg = both->btn_save_arg;
+    Fl_Secret_Input* in1 = both->in1;
 
-    Fl_Window *password_window = (Fl_Window*) w->parent();
     Fl_Text_Buffer* buf = arg->buf;
 
     Fl_Native_File_Chooser *fc = new Fl_Native_File_Chooser(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
     fc->filter(EXT);
     fc->show();
     //buf->savefile(msdStrCatNew(fc->filename(), EXT));
+    char* path = mdlStrCatNew(fc->filename(), EXT); // filename() returns path
+    printf("%s\n", buf->text());
+    printf("%s\n", path);
+    printf("%s\n", in1->value());
 
-    char* fn = msdStrCatNew(fc->filename(), EXT);
 
-    // todo: perform verification whether the content of the file saved are the same as the file in memorym
+    // todo: perform verification whether the content of the file saved are the same as the file in memory
 
     // todo: overwrite memory of objects which contained sensitive information (children of password_window, buf) with zeroes
 
-    // todo: delete only when file was saved, if user pressed X it shouldnt close
-    delete arg->encmesg_window;
-    delete password_window;
+    if ( encEncryptMessage(path, buf->text(), in1->value()) ) {
+        delete w->parent();
+        delete arg->encmesg_window;
+    } else {
+        fl_message("%s", WRITE_ERROR);
+    }
 
     // todo: display encrypted content in a window to copy then pase
 }

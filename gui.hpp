@@ -12,8 +12,9 @@
 #include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Output.H>
 #include <iostream>
-#define MSD_STR_IMPLEMENTATION // propably have to define it again since it's C++ here and in main.c it's just C
-#include "msd_str.h"
-#include "msd_type.h"
+extern "C" {
+    #include "mdl_str.h"
+    #include "enc.h"
+};
 
 #endif //CHEST_GUI_HPP
