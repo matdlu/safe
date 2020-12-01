@@ -98,14 +98,10 @@ char* mdlStrCatNew(const char* s1, const char* s2) {
         ul s1_l = mdlStrLen(s1);
         ul s2_l = mdlStrLen(s2);
 
-        char* str = (char*) malloc(s1_l + s2_l + 1); // +1 for \0 in the end
-
-        int i;
-        for(i = 0; i < s1_l; i++) str[i] = s1[i];
-
-        for(i = 0; i < s2_l; i++) str[s1_l + i] = s2[i];
-
-        str[s1_l+s2_l+1] = '\0';
+        char* str = malloc(sizeof(char)*(s1_l + s2_l + 1)); // +1 for \0 in the end
+        memcpy(str, s1, s1_l);
+        memcpy(str + s1_l, s2, s2_l);
+        str[s1_l + s2_l] = '\0';
 
         return str;
     } else {
