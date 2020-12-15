@@ -11,7 +11,6 @@ static int cmdParse(const char* str) {
 }
 
 static int cmdDecrypt(const char *pw, const char *path) {
-    encInit();
     EncDecryptFileOut out = encDecryptFile(pw, path);
 
     if( out.r > 0 ) {
@@ -25,15 +24,11 @@ static int cmdDecrypt(const char *pw, const char *path) {
 }
 
 static int cmdDecryptToFile(const char* in_path, const char* out_path, const char* pw) {
-    encInit();
     EncDecryptFileOut out = encDecryptFile(pw, in_path);
 
     if ( out.r > 0 ) {
-        FILE *f_out = fopen(out_path, "wb");
-
-        fwrite(out.m, out.m_l, 1, f_out);
-
-        fclose(f_out);
+        int r = mdlIoToFile(out.m, out.m_l, out_path);
+        if ( r != 0 ) return r;
     }
 
     encDecryptFileOutClear(&out);
@@ -41,7 +36,7 @@ static int cmdDecryptToFile(const char* in_path, const char* out_path, const cha
     return out.r;
 }
 
-static int cmdRun(int cmd, char** arg);
+static int cmdRun(int cmd, char** arg, size_t arg_l);
 static void cmdPrompt() {
     if ( CMD_PROMPT_ON != 1 ) { // to make nesting prompts impossible
         CMD_PROMPT_ON = 1;
@@ -52,12 +47,7 @@ static void cmdPrompt() {
             free(sa.a);
             sa = mdlStrSplit(mdlIoGetStr());
             //todo: make quotations " " group input
-            //int i = 0;
-            //for(i = 0; i < sa.l; i++)  {
-            //    printf("\"%s\"\n", sa.a[i]);
-            //}
-            //for(int i = 0; i < out.sa_l; i++) msd_str_printchars(out.sa[i]);
-        } while ( cmdRun(cmdParse(sa.a[0]), sa.a + 1) == 0 );
+        } while ( cmdRun(cmdParse(sa.a[0]), sa.a + 1, sa.l - 1) == 0 );
         CMD_PROMPT_ON = 0;
     }
 }
@@ -72,27 +62,43 @@ static void cmdHelp(const char* arg_cmd) {
     }
 }
 
+static int error(char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+    return 0;
+}
+
+#define error_equal_int(a,b) error("Error: %s command requires exactly %d arguments.\n", CMD_STR[a], b);
+#define error_between_int_and_int(a,b,c) error("Error: %s command requires between %d and %d arguments.\n", CMD_STR[a], b, c);
+
 /* returns 0 if everything is successful, 1 if there is a need to exit the program */
-static int cmdRun(int cmd, char** arg) {
+static int cmdRun(int cmd, char** arg, size_t arg_l) {
     switch (cmd) {
         case CMD_EXIT:
             return 1;
         case CMD_ENCRYPT_MESSAGE:
+            if ( arg_l != 3 ) return error_equal_int(cmd, 3);
             encEncryptMessage(arg[2], arg[1], arg[0]);
             break;
         case CMD_ENCRYPT_FILE:
+            if ( arg_l != 3 ) return error_equal_int(cmd, 3);
             encEncryptFile(arg[2], arg[0], arg[1]);
             break;
         case CMD_DECRYPT:
+            if ( arg_l != 2 ) return error_equal_int(cmd, 2);
             cmdDecrypt(arg[1], arg[0]);
             break;
         case CMD_DECRYPT_TO_FILE:
+            if ( arg_l != 2 ) return error_equal_int(cmd, 2);
             cmdDecryptToFile(arg[0], arg[1], arg[2]);
             break;
         case CMD_PROMPT:
             cmdPrompt();
             break;
         case CMD_HELP:
+            if ( arg_l > 1 ) return error_between_int_and_int(cmd, 0, 1);
             cmdHelp(arg[0]);
             break;
     }
@@ -102,5 +108,5 @@ static int cmdRun(int cmd, char** arg) {
 #define CMD_ARGC 1
 
 int cmdLine(int argc, char **argv) {
-    return cmdRun(cmdParse(argv[CMD_ARGC]), argv + 2);
+    return cmdRun(cmdParse(argv[CMD_ARGC]), argv + 2, argc - 2);
 }
