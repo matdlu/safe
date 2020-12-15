@@ -152,7 +152,7 @@ static int encEncryptToFile(const char* path, const uc* m, const ul m_l, const c
     return 1;
 }
 
-EncDecryptFileOut encDecryptFile(const char* path, const char* pw) { // loads a file from disk into heap buffer
+EncDecryptFileOut encDecryptFile(const char *pw, const char *path) { // loads a file from disk into heap buffer
     EncDecryptFileOut out;
     EncNotEncryptedHeader neh;
 
@@ -184,13 +184,14 @@ EncDecryptFileOut encDecryptFile(const char* path, const char* pw) { // loads a 
 
 /* convenience functions */
 
-int encEncryptMessage(const char* path, const char* message, const char* pw) {
+int encEncryptMessage(const char *pw, const char *message, const char *path) {
     return encEncryptToFile(path, message, encStrLen(message), pw, ENC_METADATA_MESSAGE); // todo: check if encEncryptToFile accepts m as const and change it if it does else make message not const
 }
 
 /* todo: use something better than fseek to get rid of fseek 2GB limitation */
-int encEncryptFile(const char* in_path, const char* out_path, const char* pw) {
+int encEncryptFile(const char *pw, const char *in_path, const char *out_path) {
     FILE *f_in = fopen(in_path, "rb");
+    if ( f_in == 0 ) return 0;
 
     fseek(f_in, 0l, SEEK_END);
     int f_l = ftell(f_in); // todo: error handling if -1

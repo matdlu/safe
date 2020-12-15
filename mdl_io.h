@@ -10,6 +10,7 @@
 
 char* mdlIoGetLine();
 char* mdlIoGetStr();
+int mdlIoToFile(const void* p, size_t p_l, const char* path);
 
 #endif //MDL_IO_H
 #ifdef MSD_IO_IMPL
@@ -35,4 +36,11 @@ char* mdlIoGetStr() {
     return line_l < MSD_IO_LINE_MAX ? line : 0;
 }
 
+int mdlIoToFile(const void* p, size_t p_l, const char* path) {
+    FILE* f_out = fopen(path, "wb");
+    if ( f_out == 0 ) return -2;
+    if ( fwrite(p, p_l, 1, f_out) != 1 ) return -3;
+    if ( fclose(f_out) == EOF ) return -1;
+    return 0;
+}
 #endif // MSD_IO_IMPL

@@ -16,11 +16,13 @@ typedef unsigned long int  ul;
 
 int mdlChIsSpace(const char c);
 int mdlChIs(const char c, const char* chars);
+char* mdlUcaToStr(unsigned char* uca, size_t uca_l);
+char* mdlUcaToStrNew(unsigned char* uca, size_t uca_l);
 int mdlStrIsBlank(const char* str);
 int mdlStrFindFirst(const char* str, const char* chars);
-char* mdlStrCat(char* s1, const char* s2);
-char* mdlStrCatNew(const char* s1, const char* s2);
+char* mdlStrCat(const char* s1, const char* s2);
 ul mdlStrLen(const char* str);
+const char* mdlStrMax(const char* s1, const char* s2);
 void mdlStrDebugPrintChars(const char* str);
 int mdlStrCmp(const char* s1, const char* s2);
 int mdlStrCntSpaces(char* str);
@@ -49,6 +51,25 @@ int mdlChIs(const char c, const char* chars) {
     return 0;
 }
 
+char* mdlUcaToStr(unsigned char* uca, size_t uca_l) {
+    if ( uca ) {
+        uca = realloc(uca, uca_l+1);
+        uca[uca_l] = '\0';
+    }
+    return uca;
+}
+
+char* mdlUcaToStrNew(unsigned char* uca, size_t uca_l) {
+    if ( uca ) {
+        char* str = malloc(uca_l + 1);
+        memcpy(str, uca, uca_l);
+        str[uca_l] = '\0';
+        return str;
+    } else {
+        return 0;
+    }
+}
+
 int mdlStrIsBlank(const char* str) {
     if ( str ) {
         while( *str ) {
@@ -70,7 +91,6 @@ int mdlStrFindFirst(const char* str, const char* chars) {
     return 0;
 }
 
-
 ul mdlStrLen(const char* str) {
     if ( str ) {
         ul str_l = 0;
@@ -81,19 +101,11 @@ ul mdlStrLen(const char* str) {
     }
 }
 
-/* mdlStrCat - appends s1 to s2 and returns a pointer to the end of the concatenated string
- * returns 0 if one of the arguments was 0 */
-char* mdlStrCat(char* s1, const char* s2) {
-    if ( s1 && s2 ) {
-        while( *s1 ) s1++;
-        while( *s1++ = *s2++ );
-        return --s1;
-    } else {
-        return 0;
-    }
+const char* mdlStrMax(const char* s1, const char* s2) {
+    return mdlStrLen(s1) > mdlStrLen(s2) ? s1 : s2;
 }
 
-char* mdlStrCatNew(const char* s1, const char* s2) {
+char* mdlStrCat(const char* s1, const char* s2) {
     if ( s1 && s2 ) {
         ul s1_l = mdlStrLen(s1);
         ul s2_l = mdlStrLen(s2);

@@ -10,18 +10,19 @@ static int cmdParse(const char* str) {
     return CMD_NO_CMD;
 }
 
-static int cmdEncryptMessage(const char* path, const char* message, const char* pw) {
+// todo: remove unnecesery wrappers
+static int cmdEncryptMessage(const char *pw, const char *message, const char *path) {
     encInit();
-    return encEncryptMessage(path, message, pw);
+    return encEncryptMessage(pw, message, path);
 }
-static int cmdEncryptFile(const char* in_path, const char* out_path, const char* pw) {
+static int cmdEncryptFile(const char *pw, const char *in_path, const char *out_path) {
     encInit();
-    return encEncryptFile(in_path, out_path, pw);
+    return encEncryptFile(pw, in_path, out_path);
 }
 
-static int cmdDecrypt(const char* path, const char* pw) {
+static int cmdDecrypt(const char *pw, const char *path) {
     encInit();
-    EncDecryptFileOut out = encDecryptFile(path, pw);
+    EncDecryptFileOut out = encDecryptFile(pw, path);
 
     if( out.r > 0 ) {
         fwrite(out.m, out.m_l, 1, stdout);
@@ -35,7 +36,7 @@ static int cmdDecrypt(const char* path, const char* pw) {
 
 static int cmdDecryptToFile(const char* in_path, const char* out_path, const char* pw) {
     encInit();
-    EncDecryptFileOut out = encDecryptFile(in_path, pw);
+    EncDecryptFileOut out = encDecryptFile(pw, in_path);
 
     if ( out.r > 0 ) {
         FILE *f_out = fopen(out_path, "wb");
@@ -87,13 +88,13 @@ static int cmdRun(int cmd, char** arg) {
         case CMD_EXIT:
             return 1;
         case CMD_ENCRYPT_MESSAGE:
-            cmdEncryptMessage(arg[0], arg[1], arg[2]);
+            cmdEncryptMessage(arg[2], arg[1], arg[0]);
             break;
         case CMD_ENCRYPT_FILE:
-            cmdEncryptFile(arg[0], arg[1], arg[2]);
+            cmdEncryptFile(arg[2], arg[0], arg[1]);
             break;
         case CMD_DECRYPT:
-            cmdDecrypt(arg[0], arg[1]);
+            cmdDecrypt(arg[1], arg[0]);
             break;
         case CMD_DECRYPT_TO_FILE:
             cmdDecryptToFile(arg[0], arg[1], arg[2]);
