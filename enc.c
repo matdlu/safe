@@ -45,7 +45,7 @@ static void encEncryptOutClear(EncEncryptOut* out) {
     ENC_ZERO(out->nonce, ENC_NONCE_L);
     out->m_l = 0;
     out->m_enc_l = 0;
-    ENC_ZERO_AND_FREE(out->m_enc)
+    ENC_ZERO_AND_FREE(out->m_enc);
 }
 
 static EncEncryptOut encEncrypt(uc* m, const ul m_l, const char* pw) {
@@ -67,6 +67,8 @@ static EncEncryptOut encEncrypt(uc* m, const ul m_l, const char* pw) {
 
     /* output handling */
     EncEncryptOut out;
+    ENC_ZERO(&out, sizeof(out));
+
     out.m_l = m_l;
     out.m_enc = m_enc;
     out.m_enc_l = m_enc_l;
@@ -136,13 +138,14 @@ static int encEncryptToFile(const char* path, const uc* m, const ul m_l, const c
     neh.m_enc_l = encrypt_out.m_enc_l;
 
     FILE *f = fopen(path, "wb");
-    if ( ! fwrite(&neh.salt_l, 8, 1, f) ) return 0;
-    if ( ! fwrite(neh.salt, neh.salt_l, 1, f) ) return 0;
-    if ( ! fwrite(&neh.nonce_l, 8, 1, f) ) return 0;
-    if ( ! fwrite(neh.nonce, neh.nonce_l, 1, f) ) return 0;
-    if ( ! fwrite(&neh.m_enc_l, 8, 1, f) ) return 0;
-    if ( ! fwrite(encrypt_out.m_enc, encrypt_out.m_enc_l, 1, f) ) return 0;
-    fclose(f);
+    if ( f == 0
+        || ! fwrite(&neh.salt_l, 8, 1, f)
+        || ! fwrite(neh.salt, neh.salt_l, 1, f)
+        || ! fwrite(&neh.nonce_l, 8, 1, f)
+        || ! fwrite(neh.nonce, neh.nonce_l, 1, f)
+        || ! fwrite(&neh.m_enc_l, 8, 1, f)
+        || ! fwrite(encrypt_out.m_enc, encrypt_out.m_enc_l, 1, f)
+        || fclose(f) == EOF ) return 0;
 
     encEncryptOutClear(&encrypt_out);
 
@@ -152,19 +155,26 @@ static int encEncryptToFile(const char* path, const uc* m, const ul m_l, const c
     return 1;
 }
 
-EncDecryptFileOut encDecryptFile(const char *pw, const char *path) { // loads a file from disk into heap buffer
+EncDecryptFileOut encDecryptFile(const char *pw, const char *path) {
     EncDecryptFileOut out;
+    ENC_ZERO(&out, sizeof(out));
+
+    if ( pw == 0 || path == 0 ) { out.r = -10; return out; }
+
     EncNotEncryptedHeader neh;
 
     FILE *f = fopen(path, "rb");
-    if ( ! fread(&neh.salt_l, 8, 1, f) ) { out.r = 0; return out; }
-    if ( ! fread(neh.salt,neh.salt_l, 1, f) ) { out.r = 0; return out; }
-    if ( ! fread(&neh.nonce_l, 8, 1, f) ) { out.r = 0; return out; }
-    if ( ! fread(neh.nonce, neh.nonce_l, 1, f) ) { out.r = 0; return out; }
-    if ( ! fread(&neh.m_enc_l, 8, 1, f) ) { out.r = 0; return out; }
+
+    if ( f == 0
+        || ! fread(&neh.salt_l, 8, 1, f)
+        || ! fread(neh.salt,neh.salt_l, 1, f)
+        || ! fread(&neh.nonce_l, 8, 1, f)
+        || ! fread(neh.nonce, neh.nonce_l, 1, f)
+        || ! fread(&neh.m_enc_l, 8, 1, f) ) return out;
+
     uc* m_enc = ENC_ALLOC(neh.m_enc_l);
-    if ( ! fread(m_enc, neh.m_enc_l, 1, f) ) { out.r = 0; return out; }
-    fclose(f);
+    if ( ! fread(m_enc, neh.m_enc_l, 1, f)
+        || fclose(f) == EOF ) return out;
 
     uc* m_with_header = encDecrypt(m_enc, neh.m_enc_l, neh.nonce, neh.salt, pw);
     out.r = m_with_header ? 1 : -1;
@@ -185,11 +195,15 @@ EncDecryptFileOut encDecryptFile(const char *pw, const char *path) { // loads a 
 /* convenience functions */
 
 int encEncryptMessage(const char *pw, const char *message, const char *path) {
+    if ( pw == 0 || message == 0 || path == 0 ) return -10;
+
     return encEncryptToFile(path, message, encStrLen(message), pw, ENC_METADATA_MESSAGE); // todo: check if encEncryptToFile accepts m as const and change it if it does else make message not const
 }
 
 /* todo: use something better than fseek to get rid of fseek 2GB limitation */
 int encEncryptFile(const char *pw, const char *in_path, const char *out_path) {
+    if ( pw == 0 || in_path == 0 || out_path == 0) return -10;
+
     FILE *f_in = fopen(in_path, "rb");
     if ( f_in == 0 ) return 0;
 

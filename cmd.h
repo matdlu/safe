@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include "enc.h"
 #include "mdl_io.h"
 #include "mdl_str.h"
