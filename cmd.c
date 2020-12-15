@@ -10,16 +10,6 @@ static int cmdParse(const char* str) {
     return CMD_NO_CMD;
 }
 
-// todo: remove unnecesery wrappers
-static int cmdEncryptMessage(const char *pw, const char *message, const char *path) {
-    encInit();
-    return encEncryptMessage(pw, message, path);
-}
-static int cmdEncryptFile(const char *pw, const char *in_path, const char *out_path) {
-    encInit();
-    return encEncryptFile(pw, in_path, out_path);
-}
-
 static int cmdDecrypt(const char *pw, const char *path) {
     encInit();
     EncDecryptFileOut out = encDecryptFile(pw, path);
@@ -88,10 +78,10 @@ static int cmdRun(int cmd, char** arg) {
         case CMD_EXIT:
             return 1;
         case CMD_ENCRYPT_MESSAGE:
-            cmdEncryptMessage(arg[2], arg[1], arg[0]);
+            encEncryptMessage(arg[2], arg[1], arg[0]);
             break;
         case CMD_ENCRYPT_FILE:
-            cmdEncryptFile(arg[2], arg[0], arg[1]);
+            encEncryptFile(arg[2], arg[0], arg[1]);
             break;
         case CMD_DECRYPT:
             cmdDecrypt(arg[1], arg[0]);
