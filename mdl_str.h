@@ -14,35 +14,38 @@ typedef unsigned short int us;
 typedef unsigned int       ui;
 typedef unsigned long int  ul;
 
-int mdlChIsSpace(const char c);
+/* ch - char */
 int mdlChIs(const char c, const char* chars);
+#define mdlChIsSpace(c) (c==' '||c=='\n'||c=='\t'||c=='\v'||c=='\f'||c=='\r')
+#define mdlChIsQuote(c) (c=='\''||c=='"')
+
+/* uca - unsigned char array */
 char* mdlUcaToStr(unsigned char* uca, size_t uca_l);
 char* mdlUcaToStrNew(unsigned char* uca, size_t uca_l);
+
 int mdlStrIsBlank(const char* str);
 int mdlStrFindFirst(const char* str, const char* chars);
 char* mdlStrCat(const char* s1, const char* s2);
 ul mdlStrLen(const char* str);
 const char* mdlStrMax(const char* s1, const char* s2);
-void mdlStrDebugPrintChars(const char* str);
 int mdlStrCmp(const char* s1, const char* s2);
 int mdlStrCntSpaces(char* str);
+char** mdlStrSplitQS(char* str, size_t* out_l);
 
-extern const char* MDL_STR_CHARS_WHITE;
+/* debug */
+void mdlStrDbgPrintChars(const char* str);
+void mdlStrDbgPrint(char* str);
+void mdlStrDbgPrintArr(char** arr);
+
+size_t mdlNtaLen(void** arr);
 
 typedef struct { char** a; ul l; } StrArr;
 StrArr mdlStrSplit(char* str);
-StrArr mdlStrSplitQuotes(char* str);
 #endif //MDL_STR_H
 
 #ifdef MDL_STR_IMPL
 #define MDL_DS_IMPL
 #include "mdl_ds.h"
-
-const char* MDL_STR_CHARS_WHITE = " \n\t\v\f\r";
-
-int mdlChIsSpace(const char c) {
-    return c==' '||c=='\n'||c=='\t'||c=='\v'||c=='\f'||c=='\r';
-}
 
 int mdlChIs(const char c, const char* chars) {
     ul chars_l;
@@ -121,13 +124,43 @@ char* mdlStrCat(const char* s1, const char* s2) {
     }
 }
 
-void mdlStrDebugPrintChars(const char* str) {
+void mdlStrDbgPrintChars(const char* str) {
     ul str_l = mdlStrLen(str);
     int i;
     for(i = 0; i < str_l + 1; i++) {  // +1 to include '\0'
         printf("'%c' ", str[i]);
     }
     putchar('\n');
+}
+
+void mdlStrDbgPrint(char* str) {
+    if ( str == 0 ) return;
+
+    int i, j;
+    int n_space = 0, max = 10;
+    char sep = ' ';
+
+    for(i = 0; str[i] != 0; i++) {
+        putchar(str[i]);
+        if ( (i+1) % max == 0 ) {
+            max *= 10;
+            n_space += 1;
+        }
+        putchar(sep);
+        for(j = 0; j < n_space; j++) putchar(' ');
+    }
+    putchar('\n');
+
+    for(i = 0; str[i] != 0; i++)
+        printf("%d%c", i, sep);
+    putchar('\n');
+}
+
+void mdlStrDbgPrintArr(char** arr) {
+    if ( arr == 0 ) return;
+    int i;
+    for (i = 0; arr[i] != 0; i++)
+        printf("%d: |%s|\n", i, arr[i]);
 }
 
 int mdlStrCmp(const char* s1, const char* s2) {
@@ -205,55 +238,80 @@ StrArr mdlStrSplit(char* str) {
     return out;
 }
 
-int mdlStrIsQuote(char c) {
-    return c=='\''||c=='"';
-}
+/* returns null terminated array of strings
+ * strings are from words enclosed with quotes or words seperated by spaces
+ * out_l becomes length of returned array
+ * returns 0 if there are unterminated quotes */
+char** mdlStrSplitQS(char* str, size_t* out_l) {
+    register int a;
+    register int b;
+    register int c;
+    register int i;
 
-StrArr mdlStrSplitQuotes(char* str) {
-    int str_l;
-    int ind = 0;
-    int i = 0;
-    StrArr out;
-
-    MdlDsDynArr* da_words = mdlDsDynArrNew(sizeof(MdlDsDynArr*));
-    MdlDsDynArr* da_word = mdlDsDynArrNew(sizeof(char));
-
-    for(str_l = i = ind = 0; str[str_l]; str_l++) {
-        //printf("%d %d %c %d %d\n", str_l, ind, str[str_l], out.sa_l, i);
-        if (mdlStrIsQuote(str[str_l])) {
-            ind++;
-            if( ind % 2 == 0 ) {
-                i = 0;
-                mdlDsDynArrAdd(da_word, &i);
-                mdlDsDynArrAdd(da_words, da_word);
-                da_word = mdlDsDynArrNew(sizeof(char));
-            }
-        } else if ( ind % 2 != 0 ) {
-            mdlDsDynArrAdd(da_word, &str[str_l]);
+    a = 0;
+    if ( str[0] != ' ') a++;
+    for(i = 0; str[i] != 0; i++) {
+        if ( mdlChIsQuote(str[i]) ) {
+            if ( ! mdlChIsSpace(str[i-1]) ) a++;
+            a++;
             i++;
-        } else if ( ind % 2 == 0 ) {
-            if ( ! mdlChIsSpace(str[str_l]) ) {
-                mdlDsDynArrAdd(da_word, &str[str_l]);
+            while( ! mdlChIsQuote(str[i]) ) {
+                if ( str[i] == 0 ) return 0;
                 i++;
-            } else if ( i > 1 ) {
-                i = 0;
-                mdlDsDynArrAdd(da_word, &i);
-                mdlDsDynArrAdd(da_words, da_word);
-                da_word = mdlDsDynArrNew(sizeof(char));
             }
+            a++;
+            i++;
+            if ( ! mdlChIsSpace(str[i]) ) a++;
+        } else if ( i > 0 ) {
+            if ( mdlChIsSpace(str[i-1]) && ! mdlChIsSpace(str[i]) ) a++;
+            if ( ! mdlChIsSpace(str[i-1]) && mdlChIsSpace(str[i])) a++;
         }
-        ind = ind < INT_MAX ? ind : 0; // prevent integer overflow
     }
-    if ( i > 1 || ind % 2 == 0) {
-        i = 0;
-        mdlDsDynArrAdd(da_word, &i);
-        mdlDsDynArrAdd(da_words, da_word);
-        mdlDsDynArrTrim(da_words);
-    }
+    if ( str[i-1] != ' ' ) a++;
 
-    out.a = (char **) da_words->a;
-    out.l = da_words->l;
+    c = a;
+    int aux[c]; // array contains start and end indexes of tokens from str
+
+    a = 0; // aux index
+    if ( str[0] != ' ' ) aux[a++] = -1;
+    for(i = 0; str[i] != 0; i++) {
+        if ( mdlChIsQuote(str[i]) ) {
+            if ( ! mdlChIsSpace(str[i-1]) ) aux[a++] = i;
+            aux[a++] = i;
+            i++;
+            while( ! mdlChIsQuote(str[i]) ) i++;
+            aux[a++] = i;
+            i++;
+            if ( ! mdlChIsSpace(str[i]) ) aux[a++] = i - 1;
+        } else if ( i > 0 ) {
+            if ( mdlChIsSpace(str[i-1]) && ! mdlChIsSpace(str[i]) ) aux[a++] = i - 1;
+            if ( ! mdlChIsSpace(str[i-1]) && mdlChIsSpace(str[i])) aux[a++] = i;
+        }
+    }
+    if ( str[i-1] != ' ' ) aux[a] = i;
+
+    c /= 2; // out length
+    if ( out_l != 0 ) *out_l = c;
+
+    char** out = malloc((c+1) * sizeof *out);
+    out[c] = 0;
+
+    for(i = 0; i < c; i++) {
+        a = aux[2*i]; // start
+        b = aux[2*i+1] - a; // size = end - start
+        out[i] = malloc(b * sizeof out[0]);
+        memcpy(out[i], str + a + 1, (b - 1) * sizeof out[0]);
+        out[i][b - 1] = '\0';
+    }
 
     return out;
 }
+
+size_t mdlNtaLen(void** arr) {
+    if ( arr == 0 ) return 0;
+    register size_t l;
+    for(l = 0; arr[l] != 0; l++);
+    return l;
+}
+
 #endif // MDL_STR_IMPL

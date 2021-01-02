@@ -40,14 +40,13 @@ static int cmdRun(int cmd, char** arg, size_t arg_l);
 static void cmdPrompt() {
     if ( CMD_PROMPT_ON != 1 ) { // to make nesting prompts impossible
         CMD_PROMPT_ON = 1;
-        StrArr sa;
-        sa.a = 0;
+        char** sa = 0;
+        size_t sa_l = 0;
         do {
             printf("%s", CMD_PROMPT_STR);
-            free(sa.a);
-            sa = mdlStrSplit(mdlIoGetStr());
-            //todo: make quotations " " group input
-        } while ( cmdRun(cmdParse(sa.a[0]), sa.a + 1, sa.l - 1) == 0 );
+            free(sa);
+            sa = mdlStrSplitQS(mdlIoGetStr(), &sa_l);
+        } while (cmdRun(cmdParse(sa[0]), sa + 1, sa_l - 1) == 0 );
         CMD_PROMPT_ON = 0;
     }
 }
