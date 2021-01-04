@@ -14,11 +14,11 @@ extern "C" {
     #include "../mdl_io.h"
     #include "../enc.h"
 };
-#define LOC_PL
+
+#include "../config.h"
 #include "loc.hpp"
 
 #include "my.hpp"
-
 
 #include "logo.xpm"
 
@@ -97,5 +97,3 @@ void ef_btn_f(Fl_Widget*, void*) { // encrypt_file_button_function
  * em - encrypt message
  */
 #include "em_btn_f.hpp" // encrypt_message_button_function
-
-
