@@ -123,7 +123,7 @@
 /*
  * pw_w/next_btn_f.hpp: next_btn_f()
  */
-#define NEXT_BTN_WRITE_ERROR "Write error. Check directory permissions and available space."
+#define NEXT_BTN_WRITE_ERROR "Błąd zapisu. Sprawdź czy posiadasz uprawnienia i czy jest wolne miejsce na dysku."
 #define NEXT_BTN_VERIFICATION_ERROR "Weryfikacja nie powiodła się.\nNajprawdopodobniej błędne hasło lub pomyłka co do pliku.\nW najgorszym wypadku plik był wcześniej uszkodzony."
 #define NEXT_BTN_READING_ERROR "Wczytanie pliku się nie powiodło."
 #endif
