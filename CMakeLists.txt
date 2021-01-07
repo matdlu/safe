@@ -1,10 +1,10 @@
 #
 # Three dependency modes
 # 1. using system libraries
-# 2. using built-in libraries
+# 2. using built-in libraries (Recommended on windows)
 # 3. using libraries built from source
 #
-set(DEPENDENCY_MODE 3)
+set(DEPENDENCY_MODE 2)
 
 #
 # Linking mode is used only by dependency mode 1
@@ -92,16 +92,24 @@ elseif(DEPENDENCY_MODE EQUAL 2)
     set(BINARIES_DIR ${DEPENDENCIES_DIR}/from_shipped_binaries)
     if (WIN32)
         # todo
+        set(PREFIX ${BINARIES_DIR}/mingw)
+        target_include_directories(chest PRIVATE ${PREFIX}/include)
+        target_link_libraries(chest
+                ${PREFIX}/lib/libfltk.a
+                ${PREFIX}/lib/libfltk_images.a
+                ${PREFIX}/lib/libsodium.a
+                -mwindows -pipe -Wl,--enable-auto-import -Wl,
+                --enable-runtime-pseudo-reloc ${PREFIX}/lib/libfltk.a -lole32 -luuid -lcomctl32)
     else()
         set(PREFIX ${BINARIES_DIR}/linux)
+        target_include_directories(chest PRIVATE ${PREFIX}/include)
+        target_link_libraries(chest
+                ${PREFIX}/lib/libfltk.a
+                ${PREFIX}/lib/libfltk_images.a
+                ${PREFIX}/lib/libsodium.a
+                -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a
+                -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11)
     endif()
-    target_include_directories(chest PRIVATE ${PREFIX}/include)
-    target_link_libraries(chest
-            ${PREFIX}/lib/libfltk.a
-            ${PREFIX}/lib/libfltk_images.a
-            ${PREFIX}/lib/libsodium.a
-            -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a
-            -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11)
 else()
     cmake_minimum_required(VERSION 3.18)
 
