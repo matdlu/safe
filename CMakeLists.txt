@@ -15,7 +15,6 @@ set(LINKING_MODE static)
 #
 # CODE
 #
-cmake_minimum_required(VERSION 3.18)
 project(chest)
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_CXX_STANDARD 14)
@@ -104,6 +103,8 @@ elseif(DEPENDENCY_MODE EQUAL 2)
             -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a
             -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11)
 else()
+    cmake_minimum_required(VERSION 3.18)
+
     set(DIR ${DEPENDENCIES_DIR}/from_source)
     file(MAKE_DIRECTORY ${DIR})
 
