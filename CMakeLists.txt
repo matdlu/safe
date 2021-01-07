@@ -19,53 +19,6 @@ project(chest)
 set(CMAKE_C_STANDARD 90)
 set(CMAKE_CXX_STANDARD 14)
 
-set(SRC_DIR " ")
-set(DOWNLOAD_DIR " ")
-function(my_download_extract url expected_hash)
-    get_filename_component(filename ${url} NAME)
-    set(file_path ${DOWNLOAD_DIR}/${filename})
-    set(file_hash " ")
-    if(EXISTS ${file_path})
-        file(MD5 ${file_path} file_hash)
-    endif()
-    if(NOT EXISTS ${file_path} OR ${expected_hash} STREQUAL ${file_hash})
-        message("downloading ${filename} from ${url}")
-        file(DOWNLOAD ${url}
-                ${file_path}
-                SHOW_PROGRESS
-                EXPECTED_HASH ${expected_hash})
-        message("extracting ${filename} to ${file_path}")
-        file(ARCHIVE_EXTRACT INPUT
-                ${file_path}
-                DESTINATION ${SRC_DIR})
-    endif()
-endfunction()
-
-set(MY_EXEC_PROCESS_OPTS " ")
-function(my_exec_process working_directory command)
-    execute_process(
-            COMMAND ${command} ${MY_EXEC_PROCESS_OPTS}
-            WORKING_DIRECTORY ${working_directory}
-            COMMAND_ERROR_IS_FATAL ANY)
-endfunction()
-
-set(INSTALL_PREFIX " ")
-set(MY_CONFIGURE_MAKE_OPTS " ")
-function(my_configure_make src_dir)
-    set(MY_EXEC_PROCESS_OPTS ${MY_CONFIGURE_MAKE_OPTS} --prefix ${INSTALL_PREFIX})
-    my_exec_process(${src_dir} ./configure)
-    set(MY_EXEC_PROCESS_OPTS install)
-    my_exec_process(${src_dir} make)
-endfunction()
-
-set(MY_CMAKE_MAKE_OPTS " ")
-function(my_cmake_make src_dir)
-    set(MY_EXEC_PROCESS_OPTS ${MY_CMAKE_MAKE_OPTS} -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX})
-    my_exec_process(${src_dir} cmake . )
-    set(MY_EXEC_PROCESS_OPTS install)
-    my_exec_process(${src_dir} make)
-endfunction()
-
 add_executable(chest
         main.c
         enc.c
@@ -111,6 +64,53 @@ elseif(DEPENDENCY_MODE EQUAL 2)
                 -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11)
     endif()
 else()
+    set(SRC_DIR " ")
+    set(DOWNLOAD_DIR " ")
+    function(my_download_extract url expected_hash)
+        get_filename_component(filename ${url} NAME)
+        set(file_path ${DOWNLOAD_DIR}/${filename})
+        set(file_hash " ")
+        if(EXISTS ${file_path})
+            file(MD5 ${file_path} file_hash)
+        endif()
+        if(NOT EXISTS ${file_path} OR ${expected_hash} STREQUAL ${file_hash})
+            message("downloading ${filename} from ${url}")
+            file(DOWNLOAD ${url}
+                    ${file_path}
+                    SHOW_PROGRESS
+                    EXPECTED_HASH ${expected_hash})
+            message("extracting ${filename} to ${file_path}")
+            file(ARCHIVE_EXTRACT INPUT
+                    ${file_path}
+                    DESTINATION ${SRC_DIR})
+        endif()
+    endfunction()
+
+    set(MY_EXEC_PROCESS_OPTS " ")
+    function(my_exec_process working_directory command)
+        execute_process(
+                COMMAND ${command} ${MY_EXEC_PROCESS_OPTS}
+                WORKING_DIRECTORY ${working_directory}
+                COMMAND_ERROR_IS_FATAL ANY)
+    endfunction()
+
+    set(INSTALL_PREFIX " ")
+    set(MY_CONFIGURE_MAKE_OPTS " ")
+    function(my_configure_make src_dir)
+        set(MY_EXEC_PROCESS_OPTS ${MY_CONFIGURE_MAKE_OPTS} --prefix ${INSTALL_PREFIX})
+        my_exec_process(${src_dir} ./configure)
+        set(MY_EXEC_PROCESS_OPTS install)
+        my_exec_process(${src_dir} make)
+    endfunction()
+
+    set(MY_CMAKE_MAKE_OPTS " ")
+    function(my_cmake_make src_dir)
+        set(MY_EXEC_PROCESS_OPTS ${MY_CMAKE_MAKE_OPTS} -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX})
+        my_exec_process(${src_dir} cmake . )
+        set(MY_EXEC_PROCESS_OPTS install)
+        my_exec_process(${src_dir} make)
+    endfunction()
+
     cmake_minimum_required(VERSION 3.18)
 
     set(DIR ${DEPENDENCIES_DIR}/from_source)
