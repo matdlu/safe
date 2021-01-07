@@ -8,6 +8,7 @@
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Output.H>
+#include <FL/fl_ask.H>
 #include <iostream>
 extern "C" {
     #include "../mdl_str.h"
