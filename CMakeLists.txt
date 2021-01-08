@@ -44,7 +44,6 @@ if(DEPENDENCY_MODE EQUAL 1)
 elseif(DEPENDENCY_MODE EQUAL 2)
     set(BINARIES_DIR ${DEPENDENCIES_DIR}/from_shipped_binaries)
     if (WIN32)
-        # todo
         set(PREFIX ${BINARIES_DIR}/mingw)
         target_include_directories(chest PRIVATE ${PREFIX}/include)
         target_link_libraries(chest
@@ -52,7 +51,8 @@ elseif(DEPENDENCY_MODE EQUAL 2)
                 ${PREFIX}/lib/libfltk_images.a
                 ${PREFIX}/lib/libsodium.a
                 -mwindows -pipe -Wl,--enable-auto-import -Wl,
-                --enable-runtime-pseudo-reloc ${PREFIX}/lib/libfltk.a -lole32 -luuid -lcomctl32)
+                --enable-runtime-pseudo-reloc ${PREFIX}/lib/libfltk.a -lole32 -luuid -lcomctl32
+                -static)
     else()
         set(PREFIX ${BINARIES_DIR}/linux)
         target_include_directories(chest PRIVATE ${PREFIX}/include)
@@ -61,7 +61,8 @@ elseif(DEPENDENCY_MODE EQUAL 2)
                 ${PREFIX}/lib/libfltk_images.a
                 ${PREFIX}/lib/libsodium.a
                 -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a
-                -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11)
+                -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11
+                -static)
     endif()
 else()
     set(SRC_DIR " ")
