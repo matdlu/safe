@@ -1,7 +1,7 @@
 #
 # Three dependency modes
 # 1. using system libraries
-# 2. using built-in libraries (Recommended on windows)
+# 2. using built-in libraries (The easiest way on windows)
 # 3. using libraries built from source
 #
 set(DEPENDENCY_MODE 2)
