@@ -4,6 +4,7 @@
 # 2. using built-in libraries (Recommended on windows)
 # 3. using libraries built from source
 #
+
 set(DEPENDENCY_MODE 2)
 
 #
@@ -33,11 +34,14 @@ if(DEPENDENCY_MODE EQUAL 1)
     find_library(sodium libsodium.a REQUIRED)
 
     if(LINKING_MODE STREQUAL static)
+        # get link flags for fltk
         execute_process(COMMAND fltk-config --ldstaticflags
                 OUTPUT_VARIABLE ld_static_flags
                 OUTPUT_STRIP_TRAILING_WHITESPACE
                 COMMAND_ERROR_IS_FATAL ANY)
-        target_link_libraries(chest ${fltk} ${fltk_images} ${sodium} ${ld_static_flags})
+        target_link_libraries(chest ${fltk} ${fltk_images} ${sodium}
+                ${ld_static_flags}
+                -static-libstdc++ -static-libgcc)
     else()
         target_link_libraries(chest fltk fltk_images sodium)
     endif()
@@ -46,23 +50,15 @@ elseif(DEPENDENCY_MODE EQUAL 2)
     if (WIN32)
         set(PREFIX ${BINARIES_DIR}/mingw)
         target_include_directories(chest PRIVATE ${PREFIX}/include)
-        target_link_libraries(chest
-                ${PREFIX}/lib/libfltk.a
-                ${PREFIX}/lib/libfltk_images.a
-                ${PREFIX}/lib/libsodium.a
-                -mwindows -pipe -Wl,--enable-auto-import -Wl,
-                --enable-runtime-pseudo-reloc ${PREFIX}/lib/libfltk.a -lole32 -luuid -lcomctl32
+        target_link_libraries(chest ${PREFIX}/lib/libfltk.a ${PREFIX}/lib/libfltk_images.a ${PREFIX}/lib/libsodium.a
+                -mwindows -pipe -Wl,--enable-auto-import -Wl, --enable-runtime-pseudo-reloc ${PREFIX}/lib/libfltk.a -lole32 -luuid -lcomctl32
                 -static)
     else()
         set(PREFIX ${BINARIES_DIR}/linux)
         target_include_directories(chest PRIVATE ${PREFIX}/include)
-        target_link_libraries(chest
-                ${PREFIX}/lib/libfltk.a
-                ${PREFIX}/lib/libfltk_images.a
-                ${PREFIX}/lib/libsodium.a
-                -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a
-                -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11
-                -static)
+        target_link_libraries(chest ${PREFIX}/lib/libfltk.a ${PREFIX}/lib/libfltk_images.a ${PREFIX}/lib/libsodium.a
+                -Wl,-z,relro -Wl,-z,now -Wl,--as-needed ${PREFIX}/lib/libfltk.a -lXrender -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm -lX11
+                -static-libstdc++ -static-libgcc)
     endif()
 else()
     set(SRC_DIR " ")
@@ -89,8 +85,7 @@ else()
 
     set(MY_EXEC_PROCESS_OPTS " ")
     function(my_exec_process working_directory command)
-        execute_process(
-                COMMAND ${command} ${MY_EXEC_PROCESS_OPTS}
+        execute_process(COMMAND ${command} ${MY_EXEC_PROCESS_OPTS}
                 WORKING_DIRECTORY ${working_directory}
                 COMMAND_ERROR_IS_FATAL ANY)
     endfunction()
@@ -106,8 +101,8 @@ else()
 
     set(MY_CMAKE_MAKE_OPTS " ")
     function(my_cmake_make src_dir)
-        set(MY_EXEC_PROCESS_OPTS ${MY_CMAKE_MAKE_OPTS} -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_PREFIX})
-        my_exec_process(${src_dir} cmake . )
+        set(MY_EXEC_PROCESS_OPTS . -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} ${MY_CMAKE_MAKE_OPTS})
+        my_exec_process(${src_dir} cmake)
         set(MY_EXEC_PROCESS_OPTS install)
         my_exec_process(${src_dir} make)
     endfunction()
@@ -140,10 +135,19 @@ else()
 
     # fltk
     file(GLOB FLTK_SRC_DIR ${SRC_DIR}/fltk* )
-    set(MY_CMAKE_MAKE_OPTS -DFLTK_LIBDIR:PATH=lib -DOPTION_BUILD_EXAMPLES:BOOL=OFF)
+    set(MY_CMAKE_MAKE_OPTS -DOPTION_BUILD_STATIC_LIBS=ON -DOPTION_SHARED_LIBS=OFF -DOPTION_BUILD_EXAMPLES=OFF "-DOPTION_OPTIM=-Os")
     my_cmake_make(${FLTK_SRC_DIR})
 
+    # get link flags for fltk
+    execute_process(COMMAND sh ${DEPENDENCIES_DIR}/scripts/grep_static_flags_from_fltk_config.sh ${FLTK_SRC_DIR}/bin/fltk-config
+            OUTPUT_VARIABLE ld_static_flags
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND_ERROR_IS_FATAL ANY)
+
+    message(ld_static_flags: "${ld_static_flags}")
     # statically link against local build
     target_include_directories(chest PRIVATE ${INSTALL_PREFIX}/include)
-    target_link_libraries(chest ${INSTALL_PREFIX}/lib/libsodium.a ${INSTALL_PREFIX}/lib/libfltk.a ${INSTALL_PREFIX}/lib/libfltk_images.a -lm -lX11 -lXext -lpthread -lXinerama -lXfixes -lXcursor -lXft -lXrender -lm -lfontconfig -ldl)
+    target_link_libraries(chest ${INSTALL_PREFIX}/lib/libsodium.a ${INSTALL_PREFIX}/lib/libfltk.a ${INSTALL_PREFIX}/lib/libfltk_images.a
+            -lm -lX11 -lXext -lpthread -lXinerama -lXfixes -lXcursor -lXft -lXrender -lfontconfig -ldl
+            -static-libstdc++ -static-libgcc)
 endif()
