@@ -4,14 +4,12 @@
 # 2. using built-in libraries (The easiest way on windows)
 # 3. using libraries built from source
 #
-
 set(DEPENDENCY_MODE 2)
 
 #
-# Linking mode is used only by dependency mode 1
-# static/shared
+# Linking mode is used by dependency mode 1
 #
-set(LINKING_MODE static)
+set(LINKING_MODE static) # static/shared
 
 #
 # CODE
