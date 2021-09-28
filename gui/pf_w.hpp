@@ -35,8 +35,6 @@ void pf_w(const char* window_label)
     myBoxLabelCfg(dnd_box, PF_DRAG_AND_DROP_LABEL);
     dnd_box->callback(pick_file_btn_f);
 
-    // todo: drag and drop a file to encrypt
-
     Fl_Button* pick_file_btn = new Fl_Button(PF_OFF, 2 * PF_OFF + PF_WIDGET_HEIGHT, PF_WIDGET_WIDTH, PF_WIDGET_HEIGHT);
     myBtnCfg(pick_file_btn, PF_PICK_FILE_BTN_LABEL, 's', pick_file_btn_f, 0);
 

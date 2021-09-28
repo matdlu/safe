@@ -23,8 +23,6 @@ void em_btn_f(Fl_Widget*, void* p)
     Fl_Text_Editor* editor = new Fl_Text_Editor(0, 0, EM_EDITOR_WIDTH, EM_EDITOR_HEIGHT);
     editor->buffer(buf);
 
-    // todo: drag and drop to paste
-
     Fl_Button* paste_btn = new Fl_Button(0, EM_EDITOR_HEIGHT, EM_BTN_WIDTH, EM_BTN_HEIGHT);
     myBtnCfg(paste_btn, EM_PASTE_BTN_LABEL, FL_CTRL + 'p', paste_btn_f, editor);
 

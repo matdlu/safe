@@ -21,8 +21,6 @@ extern "C" {
 
 #include "my.hpp"
 
-#include "logo.xpm"
-
 static const char* EXT = ".enc";
 #ifdef __WIN_32__
 static const char* TXT_EXT = ".txt";
@@ -58,9 +56,8 @@ extern "C" int main_window(int argc, char **argv)
     Fl_Button *d_btn = new Fl_Button(MAIN_OFF, MAIN_OFF, MAIN_BTN_WIDTH, MAIN_BTN_HEIGHT);
     myBtnCfg(d_btn, D_BTN_LABEL, 'd', d_btn_f, 0);
 
-    Fl_Box  *logo_box = new Fl_Box(MAIN_BTN_WIDTH + 2 * MAIN_OFF, MAIN_OFF, MAIN_BTN_WIDTH, MAIN_BTN_HEIGHT);
-    Fl_Pixmap *pix = new Fl_Pixmap(logo);
-    logo_box->image(pix);
+    Fl_Box  *logo_label = new Fl_Box(MAIN_BTN_WIDTH + 2 * MAIN_OFF, MAIN_OFF, MAIN_BTN_WIDTH, MAIN_BTN_HEIGHT);
+    myBoxLabelCfg(logo_label, "Safe - encryption tool");
 
     Fl_Button *em_btn = new Fl_Button(MAIN_OFF, MAIN_BTN_HEIGHT + 2 * MAIN_OFF, MAIN_BTN_WIDTH, MAIN_BTN_HEIGHT);
     myBtnCfg(em_btn, EM_BTN_LABEL, 'm', em_btn_f, 0);
